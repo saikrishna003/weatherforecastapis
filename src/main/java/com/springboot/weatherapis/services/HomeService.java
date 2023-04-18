@@ -12,7 +12,7 @@ public class HomeService {
 	@Autowired
 	private WebClient.Builder webClientBuilder;
 	
-	private String rapidApiKey = "d9442e7c52msh6a58035c46f5d7ap10324cjsndbb767f9b592";
+	private String rapidApiKey = "";
 	private String rapidApiHost = "forecast9.p.rapidapi.com";
 	
 	public WeatherForeCast getForeCastSummary(String city) {
