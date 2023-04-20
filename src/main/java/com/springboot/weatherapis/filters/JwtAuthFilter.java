@@ -13,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.springboot.weatherapis.Utils.JwtUtil;
 import com.springboot.weatherapis.services.UserInfoUserDetailsService;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,18 +34,25 @@ public class JwtAuthFilter extends OncePerRequestFilter{
 		String authHeader = request.getHeader("Authorization");
 		String token = null;
 		String username =null;
-		if(authHeader!=null && authHeader.startsWith("Bearer ")) {
-			token = authHeader.substring(7);
-			username = jwtUtil.extractUsername(token);
-		}
-		if(username!=null && SecurityContextHolder.getContext().getAuthentication()==null) {
-			UserDetails userDetails = userInfoUserDetailsService.loadUserByUsername(username);
-			if(jwtUtil.validateToken(token, userDetails)) {
-				UsernamePasswordAuthenticationToken authToken = 
-						new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());
-				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-				SecurityContextHolder.getContext().setAuthentication(authToken);
+		try {
+			if(authHeader!=null && authHeader.startsWith("Bearer ")) {
+				token = authHeader.substring(7);
+				username = jwtUtil.extractUsername(token);
 			}
+			if(username!=null && SecurityContextHolder.getContext().getAuthentication()==null) {
+				UserDetails userDetails = userInfoUserDetailsService.loadUserByUsername(username);
+				if(jwtUtil.validateToken(token, userDetails)) {
+					UsernamePasswordAuthenticationToken authToken = 
+							new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());
+					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+					SecurityContextHolder.getContext().setAuthentication(authToken);
+				}
+			}
+		} catch (JwtException e) {
+			response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
+            return;
 		}
 		filterChain.doFilter(request, response);
 	}
