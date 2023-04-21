@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import io.jsonwebtoken.JwtException;
 
@@ -44,6 +45,14 @@ public class ExceptionsHandlers {
 	public Map<String,String> handleException(Exception ex){
 		Map<String, String> error = new HashMap<>();
 		error.put("error", ex.getMessage());
+		return error;
+	}
+	
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ExceptionHandler(WebClientResponseException.class)
+	public Map<String,String> handleExceptionWeb(WebClientResponseException ex){
+		Map<String, String> error = new HashMap<>();
+		error.put("error", "rapidapi/webclient response exception");
 		return error;
 	}
 }
